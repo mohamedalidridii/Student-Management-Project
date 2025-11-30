@@ -58,6 +58,36 @@ pipeline {
             }
         }
 
+        stage('Database Setup') {
+            steps {
+                echo "========== Database Setup =========="
+                sh '''
+                    echo "Checking if MySQL is running..."
+                    if ! docker ps | grep -q mysql-db; then
+                        echo "MySQL not running, starting it..."
+                        docker run -d \
+                          --name mysql-db \
+                          --network app-network \
+                          -e MYSQL_ROOT_PASSWORD=rootpassword \
+                          -e MYSQL_DATABASE=studentdb \
+                          -e MYSQL_USER=springuser \
+                          -e MYSQL_PASSWORD=dandan \
+                          -p 3306:3306 \
+                          -v mysql-data:/var/lib/mysql \
+                          --restart unless-stopped \
+                          mysql:8.0 \
+                          --default-authentication-plugin=mysql_native_password
+                        
+                        echo "Waiting for MySQL to be ready..."
+                        sleep 15
+                    else
+                        echo "MySQL is already running"
+                    fi
+                '''
+                echo "Database setup completed"
+            }
+        }
+
         stage('Run') {
             steps {
                 echo "========== Deploy Stage =========="
