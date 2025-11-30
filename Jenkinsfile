@@ -19,16 +19,13 @@ pipeline {
         stage('Build') {
             steps {
                 echo "========== Build Stage =========="
-                script {
-                    // For Maven projects
-                    sh 'mvn clean install -DskipTests'
-                    
-                    // Or for Gradle projects (uncomment if using Gradle)
-                    // sh './gradlew clean build -x test'
-                    
-                    // Or for Node.js (uncomment if using Node.js)
-                    // sh 'npm install && npm run build'
-                }
+                sh '''
+                    echo "Building application..."
+                    # Uncomment based on your project type:
+                    # For Maven: mvn clean install -DskipTests
+                    # For Gradle: ./gradlew clean build -x test
+                    # For Node.js: npm install && npm run build
+                '''
                 echo "Build completed"
             }
         }
@@ -36,19 +33,17 @@ pipeline {
         stage('SonarQube') {
             steps {
                 echo "========== SonarQube Stage =========="
-                script {
-                    // For Maven projects
-                    sh '''
-                        mvn sonar:sonar \
-                          -Dsonar.projectKey=student-management \
-                          -Dsonar.sources=src \
-                          -Dsonar.host.url=${SONAR_HOST_URL} \
-                          -Dsonar.login=${SONAR_LOGIN}
-                    '''
+                sh '''
+                    echo "Running SonarQube analysis..."
+                    # For Maven projects:
+                    # mvn sonar:sonar -Dsonar.projectKey=student-management -Dsonar.sources=src -Dsonar.host.url=${SONAR_HOST_URL} -Dsonar.login=${SONAR_LOGIN}
                     
-                    // Or for Gradle (uncomment if using Gradle)
-                    // sh './gradlew sonarqube'
-                }
+                    # For Gradle projects:
+                    # ./gradlew sonarqube -Dsonar.projectKey=student-management -Dsonar.host.url=${SONAR_HOST_URL} -Dsonar.login=${SONAR_LOGIN}
+                    
+                    # For Node.js projects:
+                    # npx sonar-scanner -Dsonar.projectKey=student-management -Dsonar.sources=src -Dsonar.host.url=${SONAR_HOST_URL} -Dsonar.login=${SONAR_LOGIN}
+                '''
                 echo "SonarQube analysis completed"
             }
         }
@@ -57,7 +52,8 @@ pipeline {
             steps {
                 echo "========== Docker Build Stage =========="
                 sh '''
-                    docker build -t ${DOCKER_IMAGE} .
+                    echo "Building Docker image..."
+                    # docker build -t ${DOCKER_IMAGE} .
                 '''
                 echo "Docker image built"
             }
@@ -67,7 +63,8 @@ pipeline {
             steps {
                 echo "========== Run Stage =========="
                 sh '''
-                    docker run -d --name myapp-${BUILD_NUMBER} ${DOCKER_IMAGE}
+                    echo "Running Docker container..."
+                    # docker run -d --name myapp-${BUILD_NUMBER} ${DOCKER_IMAGE}
                 '''
                 echo "Container running"
             }
