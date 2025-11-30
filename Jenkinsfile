@@ -34,9 +34,11 @@ pipeline {
                 echo "========== SonarQube Analysis =========="
                 sh '''
                     echo "Running SonarQube code quality analysis..."
+                    chmod +x ./mvnw
                     ./mvnw sonar:sonar \
                       -Dsonar.projectKey=student-management \
-                      -Dsonar.sources=src \
+                      -Dsonar.sources=src/main/java \
+                      -Dsonar.tests=src/test/java \
                       -Dsonar.host.url=${SONAR_HOST_URL} \
                       -Dsonar.login=${SONAR_LOGIN}
                 '''
