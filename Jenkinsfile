@@ -62,6 +62,9 @@ pipeline {
             steps {
                 echo "========== Database Setup =========="
                 sh '''
+                    echo "Creating Docker network if it doesn't exist..."
+                    docker network create app-network 2>/dev/null || echo "Network already exists"
+                    
                     echo "Checking if MySQL is running..."
                     if ! docker ps | grep -q mysql-db; then
                         echo "MySQL not running, starting it..."
