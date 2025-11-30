@@ -1,11 +1,16 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_IMAGE = "myapp:${BUILD_NUMBER}"
+        SONAR_HOST_URL = "http://localhost:9000"
+        SONAR_LOGIN = credentials('sonarqube-token')
+    }
+
     stages {
         stage('Git') {
             steps {
                 echo "========== Git Stage =========="
-                echo "Checking out code from repository"
                 checkout scm
                 echo "Git checkout completed"
             }
@@ -14,8 +19,16 @@ pipeline {
         stage('Build') {
             steps {
                 echo "========== Build Stage =========="
-                echo "Building application"
-                sh 'echo "Build process here"'
+                script {
+                    // For Maven projects
+                    sh 'mvn clean install -DskipTests'
+                    
+                    // Or for Gradle projects (uncomment if using Gradle)
+                    // sh './gradlew clean build -x test'
+                    
+                    // Or for Node.js (uncomment if using Node.js)
+                    // sh 'npm install && npm run build'
+                }
                 echo "Build completed"
             }
         }
@@ -23,8 +36,19 @@ pipeline {
         stage('SonarQube') {
             steps {
                 echo "========== SonarQube Stage =========="
-                echo "Running code quality analysis"
-                sh 'echo "SonarQube analysis here"'
+                script {
+                    // For Maven projects
+                    sh '''
+                        mvn sonar:sonar \
+                          -Dsonar.projectKey=student-management \
+                          -Dsonar.sources=src \
+                          -Dsonar.host.url=${SONAR_HOST_URL} \
+                          -Dsonar.login=${SONAR_LOGIN}
+                    '''
+                    
+                    // Or for Gradle (uncomment if using Gradle)
+                    // sh './gradlew sonarqube'
+                }
                 echo "SonarQube analysis completed"
             }
         }
@@ -32,8 +56,9 @@ pipeline {
         stage('Docker Build') {
             steps {
                 echo "========== Docker Build Stage =========="
-                echo "Building Docker image"
-                sh 'echo "Docker build here"'
+                sh '''
+                    docker build -t ${DOCKER_IMAGE} .
+                '''
                 echo "Docker image built"
             }
         }
@@ -41,8 +66,9 @@ pipeline {
         stage('Run') {
             steps {
                 echo "========== Run Stage =========="
-                echo "Running Docker container"
-                sh 'echo "Docker run here"'
+                sh '''
+                    docker run -d --name myapp-${BUILD_NUMBER} ${DOCKER_IMAGE}
+                '''
                 echo "Container running"
             }
         }
